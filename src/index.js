@@ -14,6 +14,7 @@ function Square(props) {
     renderSquare(i) {
       return (
         <Square
+          key={i}
           value={this.props.squares[i]}
           onClick={() => this.props.onClick(i)}
         />
@@ -21,7 +22,7 @@ function Square(props) {
     }
     
     render() {
-      const boardSize = 3;
+      const boardSize = this.props.boardSize;
 
       let board = [];
       
@@ -32,7 +33,7 @@ function Square(props) {
         }
 
         board.push(
-          <div className="board-row">
+          <div key={i} className="board-row">
             {rowOfSquares}
           </div>
         );
@@ -58,7 +59,8 @@ function Square(props) {
           }
         ],
         stepNumber: 0,
-        xIsNext: true
+        xIsNext: true,
+        reversed: false
       };
     }
   
@@ -89,13 +91,19 @@ function Square(props) {
         xIsNext: (step % 2) === 0
       });
     }
+
+    reorderMoves() {
+      this.setState({
+        reversed: !this.state.reversed
+      });
+    }
   
     render() {
       const history = this.state.history;
       const current = history[this.state.stepNumber];
       const winner = calculateWinner(current.squares);
   
-      const moves = history.map((step, move) => {
+      let moves = history.map((step, move) => {
         let desc = move ?
           'Go to move #' + move + ' (' + step.col + ', ' + step.row + ')' :
           'Go to game start';
@@ -112,7 +120,15 @@ function Square(props) {
           </li>
         );
       });
-  
+      
+      let renderMoves;
+      if(this.state.reversed) {
+        moves = moves.reverse();
+        renderMoves = (<ol reversed>{moves}</ol>)
+      } else {
+        renderMoves = (<ol>{moves}</ol>);
+      }
+
       let status;
       if (winner) {
         status = "Winner: " + winner;
@@ -126,11 +142,13 @@ function Square(props) {
             <Board
               squares={current.squares}
               onClick={i => this.handleClick(i)}
+              boardSize={3}
             />
           </div>
           <div className="game-info">
             <div>{status}</div>
-            <ol>{moves}</ol>
+            <button onClick={() => this.reorderMoves()}>Reverse move list</button>
+            {renderMoves}
           </div>
         </div>
       );
