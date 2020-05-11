@@ -102,6 +102,14 @@ function Square(props) {
         reversed: !this.state.reversed
       });
     }
+
+    checkIfNoMovesRemaining(squares) {
+      if(!squares.includes(null)) {
+        return true;
+      }
+
+      return false;
+    }
   
     render() {
       const history = this.state.history;
@@ -109,6 +117,13 @@ function Square(props) {
       const winnerInfo = calculateWinner(current.squares);
       const winner = winnerInfo.winner;
       const winningSquares = winnerInfo.winningSquares;
+
+      let draw;
+      if(null === winner && this.checkIfNoMovesRemaining(current.squares) === true) {
+        draw = true;
+      } else {
+        draw = false;
+      }
   
       let moves = history.map((step, move) => {
         let desc = move ?
@@ -139,6 +154,8 @@ function Square(props) {
       let status;
       if (winner) {
         status = "Winner: " + winner;
+      } else if(draw) {
+        status = "Tie game!";
       } else {
         status = "Next player: " + (this.state.xIsNext ? "X" : "O");
       }
