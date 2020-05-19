@@ -30,10 +30,10 @@ function Square(props) {
       for(let i = 0; i < boardSize; i++) {
         let rowOfSquares = [];
         for(let j = 0; j < boardSize; j++) {
-          if(this.props.winningSquares && this.props.winningSquares.includes((i * 3) + j)){
-            rowOfSquares.push(this.renderSquare((i * 3) + j, true));
+          if(this.props.winningSquares && this.props.winningSquares.includes((i * boardSize) + j)){
+            rowOfSquares.push(this.renderSquare((i * boardSize) + j, true));
           } else {
-            rowOfSquares.push(this.renderSquare((i * 3) + j, false));
+            rowOfSquares.push(this.renderSquare((i * boardSize) + j, false));
           }
         }
 
@@ -55,10 +55,11 @@ function Square(props) {
   class Game extends React.Component {
     constructor(props) {
       super(props);
+      this.boardSize = 3;
       this.state = {
         history: [
           {
-            squares: Array(9).fill(null),
+            squares: Array(this.boardSize * this.boardSize).fill(null),
             col: 0,
             row: 0
           }
@@ -81,8 +82,8 @@ function Square(props) {
         history: history.concat([
           {
             squares: squares,
-            col: (i % 3) + 1,
-            row: Math.floor(i/3) + 1
+            col: (i % this.boardSize) + 1,
+            row: Math.floor(i / this.boardSize) + 1
           }
         ]),
         stepNumber: history.length,
@@ -167,7 +168,7 @@ function Square(props) {
               squares={current.squares}
               winningSquares={winningSquares}
               onClick={i => this.handleClick(i)}
-              boardSize={3}
+              boardSize={this.boardSize}
             />
           </div>
           <div className="game-info">
@@ -185,28 +186,74 @@ function Square(props) {
   ReactDOM.render(<Game />, document.getElementById("root"));
   
   function calculateWinner(squares) {
-    const lines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6]
-    ];
+    let lines = [];
+    let boardSize = Math.sqrt(squares.length);
+    
+    //Add winning rows
+    let row = [];
+    for(let i = 0; i < squares.length; i++) {
+      row.push(i);
+      if(i % boardSize === boardSize - 1 && i !== 0) {
+        lines.push(row);
+        row = [];
+      }
+    }
+    
+    //Add wining columns
+    let column = [];
+    for(let j = 0; j < squares.length; j++) {
+      column.push(conditionalModulus((j * boardSize), (squares.length - 1)))
+      if(j % boardSize === boardSize - 1 && j !== 0) {
+        lines.push(column);
+        column = [];
+      }
+    }
+
+    //Add winning diagonals
+    let diagonal = [];
+    for(let i = 0; i < squares.length; i = i + boardSize + 1) {
+      diagonal.push(i);
+    }
+
+    lines.push(diagonal);
+    diagonal = []
+
+    //squares.length - 1 to avoid including bottom right square in second diagonal
+    for(let i = boardSize - 1; i < squares.length - 1; i = i + boardSize - 1) {
+      diagonal.push(i);
+    }
+    lines.push(diagonal);
+
+    let isWinner = false;
     for (let i = 0; i < lines.length; i++) {
-      const [a, b, c] = lines[i];
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return {
-          winner: squares[a],
-          winningSquares: [a, b, c]
-        };
+      let currentSymbol = squares[lines[i][0]];
+      if(currentSymbol) {
+        isWinner = true;
+        for(let j = 0; j < lines[i].length; j++) {
+          if(squares[lines[i][j]] !== currentSymbol) {
+            isWinner = false;
+          }
+        }
+
+        if(isWinner) {
+          return {
+            winner: currentSymbol,
+            winningSquares: lines[i]
+          };
+        }
       }
     }
     return {
       winner: null,
       winningSquares: null
     };
+  }
+
+  function conditionalModulus(value, modulus) {
+    if(value % modulus === 0 && value !== 0) {
+      return modulus;
+    }
+
+    return value % modulus;
   }
   
