@@ -55,7 +55,7 @@ function Square(props) {
   class Game extends React.Component {
     constructor(props) {
       super(props);
-      this.boardSize = 3;
+      this.boardSize = props.boardSize;
       this.state = {
         history: [
           {
@@ -181,9 +181,59 @@ function Square(props) {
     }
   }
   
+  function TextInput(props) {
+    return (
+    <form>
+      <label>
+        Enter your board size:
+        <br />
+        <input type="number" value={props.value} onChange={props.onChange} name="boardSize" />
+      </label>
+      <br />
+      <br />
+      <input type="button" onClick={props.onClick} value="Set size" />
+    </form>
+    )
+  }
+
+  class Page extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = {
+        boardSize: 3,
+        isConfigured: false,
+        textValue: ""
+      }
+    }
+    
+    onClickHandler = () => {
+      console.log("Clicked");
+      this.setState({
+        boardSize: this.state.textValue,
+        isConfigured: true
+      });
+    }
+
+    onChangeHandler = (event) => {
+      this.setState({textValue: event.target.value} )
+    }
+
+    render() {
+      if(this.state.isConfigured) {
+        return (
+          <Game boardSize={this.state.boardSize}/>
+        );
+      }
+    
+      return (
+        <TextInput value={this.state.textValue} onClick={this.onClickHandler} onChange={this.onChangeHandler}/>
+      );
+    }
+  }
+
   // ========================================
   
-  ReactDOM.render(<Game />, document.getElementById("root"));
+  ReactDOM.render(<Page />, document.getElementById("root"));
   
   function calculateWinner(squares) {
     let lines = [];
